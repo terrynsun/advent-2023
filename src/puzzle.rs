@@ -1,6 +1,14 @@
 #![allow(dead_code)]
 
+use clap::Parser;
+
 use std::fs;
+
+#[derive(Parser, Debug)]
+struct Args {
+    #[arg(short, long)]
+    debug: bool,
+}
 
 /// T is the type that the input gets parsed into
 /// R is the type that the answer comes in
@@ -30,8 +38,10 @@ impl<T, R> Puzzle<T, R> {
     where
         R: std::fmt::Display,
     {
-        let debug = false;
         let dir = "inputs";
+
+        let args = Args::parse();
+        let debug = args.debug;
 
         let filename = if debug {
             "test.txt".to_string()

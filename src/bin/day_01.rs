@@ -1,4 +1,4 @@
-use advent_2023::puzzle::*;
+use advent_2023::puzzle::Puzzle;
 
 use regex::Regex;
 
@@ -53,10 +53,10 @@ fn one_b(data: &Vec<String>) -> i32 {
 }
 
 fn main() {
-    Puzzle::new(
-        "1",
-        vec![one_a, one_b],
-        '\n',
-        |v| v,
-    ).solve();
+    Puzzle {
+        name: "1",
+        parts: vec![one_a, one_b],
+        delimiter: '\n',
+        preprocess: |v| v,
+    }.solve();
 }
