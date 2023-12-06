@@ -1,5 +1,4 @@
-#![allow(unused_variables)]
-use std::fs;
+use advent_2023::puzzle::*;
 
 use regex::Regex;
 
@@ -19,7 +18,7 @@ fn one_a(data: &Vec<String>) -> i32 {
     sum
 }
 
-fn translate(s: &str) -> i32 {
+fn to_num(s: &str) -> i32 {
     if let Ok(i) = s.parse::<i32>() {
         i
     } else {
@@ -45,59 +44,19 @@ fn one_b(data: &Vec<String>) -> i32 {
     let mut sum = 0;
 
     for line in data {
-        // let mut nums = vec![];
         let f = &first_re.captures(line).unwrap()[1];
         let l = &last_re.captures(line).unwrap()[1];
-        sum += translate(f) * 10 + translate(l);
+        sum += to_num(f) * 10 + to_num(l);
     }
 
     sum
 }
 
-fn one() -> Puzzle<Vec<String>, i32> {
-    Puzzle {
-        name: "1",
-        parts: vec![one_a, one_b],
-        delimiter: '\n',
-        preprocess: |v| v,
-    }
-}
-
-struct Puzzle<T, R> {
-    // T is the type that the input gets parsed into
-    // R is the type that the answer comes in
-    name: &'static str,
-    parts: Vec<fn(&T) -> R>,
-    delimiter: char,
-    preprocess: fn(Vec<String>) -> T,
-}
-
-fn solve_puzzle<T, R>(p: Puzzle<T, R>)
-where
-    R: std::fmt::Display,
-{
-    let debug = false;
-    let dir = "inputs";
-
-    let filename = if debug {
-        "test.txt".to_string()
-    } else {
-        format!("{}/{}", dir, p.name)
-    };
-    let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
-    let lines = contents
-        .trim_end()
-        .split(p.delimiter)
-        .map(|x| x.to_string())
-        .collect();
-
-    let data = (p.preprocess)(lines);
-
-    for f in p.parts {
-        println!("{}", f(&data));
-    }
-}
-
 fn main() {
-    solve_puzzle(one());
+    Puzzle::new(
+        "1",
+        vec![one_a, one_b],
+        '\n',
+        |v| v,
+    ).solve();
 }
