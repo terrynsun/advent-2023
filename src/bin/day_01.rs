@@ -38,7 +38,7 @@ fn to_num(s: &str) -> i32 {
 }
 
 fn one_b(data: &Vec<String>) -> i32 {
-    let first_re = Regex::new(r"(one|two|three|four|five|six|seven|eight|nine|[0-9]).*").unwrap();
+    let first_re = Regex::new(r"(one|two|three|four|five|six|seven|eight|nine|[0-9])").unwrap();
     let last_re = Regex::new(r".*(one|two|three|four|five|six|seven|eight|nine|[0-9]).*").unwrap();
 
     let mut sum = 0;
