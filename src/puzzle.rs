@@ -59,7 +59,7 @@ impl<T, R> Puzzle<T, R> {
         let data = (self.preprocess)(lines);
 
         for f in self.parts {
-            println!("{}", f(&data));
+            println!("=> {}", f(&data));
         }
     }
 }
