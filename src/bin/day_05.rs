@@ -6,6 +6,15 @@ struct Almanac {
     maps: [Map; 7],
 }
 
+impl Almanac {
+    fn resolve_location(&self, n: u64) -> u64 {
+        self.maps.iter()
+            .fold(n, |acc, map| {
+                map.translate(acc)
+            })
+    }
+}
+
 #[derive(Debug, Default)]
 struct Map {
     ranges: Vec<Range>,
@@ -63,8 +72,15 @@ fn a(almanac: &Almanac) -> u64 {
         .unwrap()
 }
 
-fn b(_data: &Almanac) -> u64 {
-    0
+fn b(almanac: &Almanac) -> u64 {
+    let mut min = u64::MAX;
+    for seed_range in almanac.seeds.chunks(2).collect::<Vec<_>>() {
+        for i in seed_range[0]..seed_range[0]+seed_range[1] {
+            min = std::cmp::min(min, almanac.resolve_location(i));
+        }
+    }
+
+    min
 }
 
 fn main() {
