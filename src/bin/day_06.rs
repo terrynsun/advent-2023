@@ -11,9 +11,9 @@ fn travel(time: u64, hold: u64) -> u64 {
 }
 
 fn a(data: &Vec<Race>) -> u64 {
-    data.iter().map(|(t, d)| {
-        (0..*t).map(|x| travel(*t, x)).filter(|x| x > d).count() as u64
-    }).fold(1, |acc, x| acc * x)
+    data.iter()
+        .map(|(t, d)| (0..*t).map(|x| travel(*t, x)).filter(|x| x > d).count() as u64)
+        .product()
 }
 
 fn main() {
@@ -29,7 +29,8 @@ fn main() {
 
             zip(times, distances).collect::<Vec<_>>()
         },
-    }.solve();
+    }
+    .solve();
 
     Puzzle {
         name: "6",
@@ -45,5 +46,6 @@ fn main() {
 
             zip(times, distances).collect::<Vec<_>>()
         },
-    }.solve();
+    }
+    .solve();
 }

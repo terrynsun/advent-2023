@@ -35,15 +35,14 @@ impl Engine {
     }
 
     pub fn try_get_digit(&self, x: i32, y: i32) -> Option<u32> {
-        self.get(x, y).map(|c| c.to_digit(10)).flatten()
+        self.get(x, y).and_then(|c| c.to_digit(10))
     }
 
     /// Returns the number and the coordinates of its firs digit.
     pub fn try_get_full_part_number(&self, x: i32, y: i32) -> Option<(u32, i32, i32)> {
         let mut digits = vec![];
-        if self.try_get_digit(x, y).is_none() {
-            return None;
-        }
+
+        self.try_get_digit(x, y)?;
 
         let mut least_x = x;
 
@@ -121,7 +120,7 @@ fn b(engine: &Engine) -> i32 {
 
             let adjs: Vec<u32> = engine.find_adjacents(x, y).into_iter().map(|(x, _, _)| x).collect();
             if adjs.len() > 1 {
-                total += adjs.iter().fold(1, |acc, e| acc * e);
+                total += adjs.iter().product::<u32>()
             }
         }
     }

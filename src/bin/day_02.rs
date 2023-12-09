@@ -53,10 +53,10 @@ fn main() {
             text.iter()
                 .map(|line| {
                     let game_re = Regex::new(r"Game ([0-9]+): (.*)").unwrap();
-                    let captures = game_re.captures(&line).unwrap();
+                    let captures = game_re.captures(line).unwrap();
 
                     let draws = captures[2]
-                        .split(";")
+                        .split(';')
                         .map(|d| {
                             let balls_re = Regex::new(r"([0-9]+) ([a-z]+)").unwrap();
                             let mut draw = HashMap::new();
