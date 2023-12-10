@@ -73,7 +73,7 @@ fn a(data: &Graph) -> i32 {
 
 fn b(data: &Graph) -> i32 {
     let x = data.a_nodes.iter().map(|n| len(data, n)).collect::<Vec<_>>();
-    println!("{x}");
+    println!("{x:?}");
     // x.iter().fold(1, |acc, x| num::integer::lcm(acc, *x))
     // This overflowed the num crate, I used a LCM calculator online. lol.
     0
