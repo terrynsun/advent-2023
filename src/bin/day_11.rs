@@ -11,8 +11,8 @@ struct Coord {
 impl Coord {
     fn new(x: usize, y: usize) -> Self {
         Coord {
-            x: x as usize,
-            y: y as usize
+            x,
+            y,
         }
     }
 }

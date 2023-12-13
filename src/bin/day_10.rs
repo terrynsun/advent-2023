@@ -321,8 +321,7 @@ fn b(map: &Map) -> u64 {
 fn main() {
     Puzzle {
         name: "10",
-        //parts: vec![a, b],
-        parts: vec![b],
+        parts: vec![a, b],
         delimiter: '\n',
         preprocess: |text| {
             Map::new(text.into_iter().map(|line| line.chars().collect()).collect())

@@ -1,17 +1,5 @@
 use advent_2023::puzzle::Puzzle;
 
-fn broken(c: char) -> bool {
-    c == '#'
-}
-
-fn working(c: char) -> bool {
-    c == '.'
-}
-
-fn unknown(c: char) -> bool {
-    c == '?'
-}
-
 #[derive(Debug)]
 struct RowRecord {
     springs: Vec<char>,
@@ -35,13 +23,12 @@ fn gen_all_possible_unknowns(springs: &Vec<char>) -> Vec<Vec<char>> {
 
             // awful
             suffixes.clone().into_iter()
-            .map(|suffix| {
+            .flat_map(|suffix| {
                 vec![
                     vec![prefix.clone(), vec!['.'], suffix.clone()].into_iter().flatten().collect::<Vec<_>>(),
                     vec![prefix.clone(), vec!['#'], suffix.clone()].into_iter().flatten().collect::<Vec<_>>(),
                 ]
             })
-            .flatten()
             .collect::<Vec<_>>()
         }
     }
@@ -83,7 +70,7 @@ fn a(data: &Vec<RowRecord>) -> usize {
             gen_all_possible_unknowns(&row.springs)
                 .iter()
                 .map(|possible_row| matches(possible_row, &row.counts))
-                .filter(|&x| x == true)
+                .filter(|&x| x)
                 .count()
         })
         .sum()
@@ -100,7 +87,7 @@ fn main() {
         delimiter: '\n',
         preprocess: |text| {
             text.iter().map(|line| {
-                let parts = advent_2023::util::split_to_strings(&line);
+                let parts = advent_2023::util::split_to_strings(line);
                 let springs = parts[0].chars().collect();
                 let counts = split_commas(&parts[1]);
 

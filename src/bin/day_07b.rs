@@ -67,6 +67,7 @@ enum HandType {
     FiveOfAKind,  // AAAAA
 }
 
+#[allow(clippy::derive_ord_xor_partial_ord)]
 #[derive(Debug, PartialEq, Eq, Ord, Clone)]
 struct Hand {
     cards: Vec<Card>,
@@ -85,7 +86,7 @@ impl Hand {
         self.cards.iter().for_each(|c| counter.insert(*c));
 
         // Remove jokers from the pot before sorting
-        let joker_count = counter.data.get(&Card::J).unwrap_or(&0).clone();
+        let joker_count = *counter.data.get(&Card::J).unwrap_or(&0);
         counter.data.remove(&Card::J);
 
         let mut grouped = counter.data.into_iter().collect::<Vec<_>>();
@@ -144,9 +145,9 @@ impl PartialOrd for Hand {
             .filter(|(a, b)| a != b).collect::<Vec<_>>();
 
         if let Some((a, b)) = zipped.get(0) {
-            return Some(a.cmp(b))
+            Some(a.cmp(b))
         } else {
-            return Some(std::cmp::Ordering::Equal)
+            Some(std::cmp::Ordering::Equal)
         }
     }
 }

@@ -41,7 +41,7 @@ fn len(data: &Graph, starting: &String) -> i32 {
         };
 
         i += 1;
-        if cur_node.ends_with("Z") {
+        if cur_node.ends_with('Z') {
             break
         }
     }
