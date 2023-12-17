@@ -2,26 +2,20 @@ use std::collections::HashSet;
 
 use advent_2023::puzzle::Puzzle;
 use advent_2023::twod::Coord;
+use advent_2023::twod::Map as InnerMap;
 
 #[derive(Debug)]
 struct Map {
-    pub data: Vec<Vec<char>>,
+    pub inner: InnerMap,
 
     pub start: Coord,
-
-    // These should be usize but it's annoying to deal with underflows.
-    pub xmax: i32,
-    pub ymax: i32,
 }
 
 impl Map {
     fn new(data: Vec<Vec<char>>) -> Self {
-        let ymax = data.len() as i32;
-        let xmax = data[0].len() as i32;
-
         let start = Self::find_start(&data);
 
-        Self { data, start, ymax, xmax }
+        Self { inner: InnerMap::new(data), start }
     }
 
     fn empty(xmax: i32, ymax: i32) -> Self {
@@ -33,21 +27,7 @@ impl Map {
     }
 
     fn set(&mut self, c: Coord, v: char) {
-        if !self.in_bounds(c.x, c.y) {
-            println!("set out of bounds");
-        }
-
-        self.data[c.y as usize][c.x as usize] = v;
-    }
-
-    #[allow(dead_code)]
-    fn pretty_map(&self) {
-        let cloned = self.data.clone();
-        let out = cloned.into_iter()
-            .map(|line| line.into_iter().collect::<String>())
-            .collect::<Vec<_>>()
-            .join("\n");
-        println!("{out}");
+        self.inner.set(c, v);
     }
 
     // lazy
@@ -63,16 +43,8 @@ impl Map {
         Coord { x: -1, y: -1 }
     }
 
-    fn in_bounds(&self, x: i32, y: i32) -> bool {
-        x >= 0 && y >= 0 && x < self.xmax && y < self.ymax
-    }
-
     fn get(&self, c: Coord) -> Option<char> {
-        if !self.in_bounds(c.x, c.y) {
-            None
-        } else {
-            Some(self.data[c.y as usize][c.x as usize])
-        }
+        self.inner.get(c)
     }
 
     // | is a vertical pipe connecting north and south.
@@ -192,7 +164,7 @@ impl Map {
 }
 
 fn a(map: &Map) -> u64 {
-    let mut steps_map = Map::empty(map.xmax, map.ymax);
+    let mut steps_map = Map::empty(map.inner.xmax, map.inner.ymax);
     steps_map.set(map.start, '0');
 
     let mut cur_char = '0';
@@ -230,7 +202,7 @@ fn incr_char(c: char) -> char {
 }
 
 fn b(map: &Map) -> u64 {
-    let mut steps_map = Map::empty(map.xmax, map.ymax);
+    let mut steps_map = Map::empty(map.inner.xmax, map.inner.ymax);
     steps_map.set(map.start, '0');
 
     let mut set = HashSet::new();
@@ -262,16 +234,16 @@ fn b(map: &Map) -> u64 {
         }
     }
 
-    steps_map.pretty_map();
+    println!("{}", steps_map.inner);
 
     let mut inside = 0;
-    for (y, line) in steps_map.data.clone().iter().enumerate() {
+    for (y, line) in steps_map.inner.data.clone().iter().enumerate() {
         for (x, &c) in line.iter().enumerate() {
             if c == 'X' {
                 continue;
             }
 
-            let rem = map.data[y][x..].iter().filter(|&&x| x == 'X').count();
+            let rem = map.inner.data[y][x..].iter().filter(|&&x| x == 'X').count();
             if rem % 2 == 1 {
                 inside += 1;
                 steps_map.set(Coord { x: x as i32, y: y as i32 }, 'I');
@@ -279,7 +251,7 @@ fn b(map: &Map) -> u64 {
         }
     }
 
-    steps_map.pretty_map();
+    println!("{}", steps_map.inner);
 
     inside
 }
