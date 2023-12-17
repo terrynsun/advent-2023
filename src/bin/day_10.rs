@@ -6,7 +6,7 @@ use advent_2023::twod::Map as InnerMap;
 
 #[derive(Debug)]
 struct Map {
-    pub inner: InnerMap,
+    pub inner: InnerMap<char>,
 
     pub start: Coord,
 }
@@ -19,11 +19,10 @@ impl Map {
     }
 
     fn empty(xmax: i32, ymax: i32) -> Self {
-        let data = (0..ymax)
-            .map(|_| (0..xmax).map(|_| '.').collect::<Vec<_>>())
-            .collect::<Vec<_>>();
-
-        Self::new(data)
+        Self {
+            inner: InnerMap::empty(xmax, ymax, '.'),
+            start: Coord::new(0, 0),
+        }
     }
 
     fn set(&mut self, c: Coord, v: char) {

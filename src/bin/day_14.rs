@@ -1,8 +1,9 @@
 use advent_2023::puzzle::Puzzle;
 use advent_2023::twod::Coord;
 use advent_2023::twod::Map;
+use advent_2023::twod::char_map_from_strings;
 
-fn get_first_northern_rock(map: &Map, x: i32, y: i32) -> Coord {
+fn get_first_northern_rock(map: &Map<char>, x: i32, y: i32) -> Coord {
     let mut final_coord = Coord { x, y };
 
     // this could be a weird fold or a search
@@ -22,7 +23,7 @@ fn get_first_northern_rock(map: &Map, x: i32, y: i32) -> Coord {
     final_coord
 }
 
-fn a(map: &Map) -> usize {
+fn a(map: &Map<char>) -> usize {
     let mut map = map.clone();
     println!("{map}");
     for (y, line) in map.data.clone().iter().enumerate() {
@@ -41,7 +42,7 @@ fn a(map: &Map) -> usize {
         .sum::<usize>()
 }
 
-fn b(_data: &Map) -> usize {
+fn b(_data: &Map<char>) -> usize {
     0
 }
 
@@ -50,6 +51,6 @@ fn main() {
         name: "14",
         parts: vec![a, b],
         delimiter: '\n',
-        preprocess: Map::from_strings,
+        preprocess: char_map_from_strings,
     }.solve();
 }

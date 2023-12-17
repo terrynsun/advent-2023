@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Coord {
     pub x: i32,
@@ -40,29 +42,32 @@ impl Coord {
 }
 
 #[derive(Debug, Clone)]
-pub struct Map {
-    pub data: Vec<Vec<char>>,
+pub struct Map<T> {
+    pub data: Vec<Vec<T>>,
 
     // These should be usize but it's annoying to deal with underflows.
     pub xmax: i32,
     pub ymax: i32,
 }
 
-impl Map {
-    pub fn new(data: Vec<Vec<char>>) -> Self {
+pub fn char_map_from_strings(data: Vec<String>) -> Map<char> {
+    Map::new(data.into_iter().map(|line| line.chars().collect()).collect())
+}
+
+impl<T> Map<T>
+where
+    T: Copy
+{
+    pub fn new(data: Vec<Vec<T>>) -> Self {
         let ymax = data.len() as i32;
         let xmax = data[0].len() as i32;
 
         Self { data, ymax, xmax }
     }
 
-    pub fn from_strings(data: Vec<String>) -> Self {
-        Map::new(data.into_iter().map(|line| line.chars().collect()).collect())
-    }
-
-    pub fn empty(xmax: i32, ymax: i32) -> Self {
+    pub fn empty(xmax: i32, ymax: i32, val: T) -> Self {
         let data = (0..ymax)
-            .map(|_| (0..xmax).map(|_| '.').collect::<Vec<_>>())
+            .map(|_| (0..xmax).map(|_| val).collect::<Vec<_>>())
             .collect::<Vec<_>>();
 
         Self::new(data)
@@ -72,7 +77,7 @@ impl Map {
         c.x >= 0 && c.y >= 0 && c.x < self.xmax && c.y < self.ymax
     }
 
-    pub fn get(&self, c: Coord) -> Option<char> {
+    pub fn get(&self, c: Coord) -> Option<T> {
         if !self.in_bounds(c) {
             None
         } else {
@@ -80,7 +85,7 @@ impl Map {
         }
     }
 
-    pub fn set(&mut self, c: Coord, v: char) {
+    pub fn set(&mut self, c: Coord, v: T) {
         if !self.in_bounds(c) {
             println!("set out of bounds");
         }
@@ -89,10 +94,18 @@ impl Map {
     }
 }
 
-impl std::fmt::Display for Map {
+impl<T> Display for Map<T>
+where
+    T: Display
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let out = self.data.iter()
-            .map(|line| line.iter().collect::<String>())
+            .map(|line|
+                line.iter()
+                .map(|v| v.to_string())
+                .collect::<Vec<_>>()
+                .join("")
+            )
             .collect::<Vec<_>>()
             .join("\n");
         write!(f, "{out}")

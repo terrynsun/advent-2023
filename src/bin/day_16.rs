@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use advent_2023::puzzle::Puzzle;
-use advent_2023::twod::{Coord, Map};
+use advent_2023::twod::{Coord, Map, char_map_from_strings};
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 enum Direction {
@@ -88,8 +88,8 @@ impl Beam {
     }
 }
 
-fn score_from_start(map: &Map, start: Beam) -> usize{
-    let mut state = Map::empty(map.xmax, map.ymax);
+fn score_from_start(map: &Map<char>, start: Beam) -> usize{
+    let mut state = Map::empty(map.xmax, map.ymax, '.');
     let mut beam_history = HashSet::new();
     let mut beams = vec![start];
 
@@ -132,7 +132,7 @@ fn score_from_start(map: &Map, start: Beam) -> usize{
         .sum()
 }
 
-fn a(map: &Map) -> usize {
+fn a(map: &Map<char>) -> usize {
     let start = Beam {
         coord: Coord::new(0, 0),
         dir: Direction::East,
@@ -140,7 +140,7 @@ fn a(map: &Map) -> usize {
     score_from_start(map, start)
 }
 
-fn b(map: &Map) -> usize {
+fn b(map: &Map<char>) -> usize {
     [
         // top row, going south
         (0..map.xmax)
@@ -193,7 +193,7 @@ fn main() {
         name: "16",
         parts: vec![a, b],
         delimiter: '\n',
-        preprocess: Map::from_strings,
+        preprocess: char_map_from_strings,
     }
     .solve();
 }
