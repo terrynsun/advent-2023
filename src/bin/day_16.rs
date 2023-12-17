@@ -1,7 +1,9 @@
+use std::collections::HashSet;
+
 use advent_2023::puzzle::Puzzle;
 use advent_2023::twod::{Coord, Map};
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 enum Direction {
     North,
     East,
@@ -9,7 +11,7 @@ enum Direction {
     West,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 struct Beam {
     coord: Coord,
     dir: Direction,
@@ -86,6 +88,7 @@ impl Beam {
 
 fn a(map: &Map) -> usize {
     let mut state = Map::empty(map.xmax, map.ymax);
+    let mut beam_history = HashSet::new();
 
     let start = Beam {
         coord: Coord::new(0, 0),
@@ -110,29 +113,20 @@ fn a(map: &Map) -> usize {
         beams.iter_mut()
             .for_each(|b| b.step_forward());
 
-        beams.iter()
-            .for_each(|b| {
-                if map.in_bounds(b.coord) {
-                    state.set(b.coord, '*')
-                }
-            });
-
         beams = beams
             .into_iter()
+            // discard beams that have left the map
             .filter(|b| map.in_bounds(b.coord))
+            // discard beams that we have seen before
+            .filter(|b| !beam_history.contains(b))
             .collect();
+
+        beams.iter()
+            .for_each(|b| { beam_history.insert(b.clone()); });
 
         if beams.is_empty() {
             break;
         }
-        let score: usize = state
-            .data
-            .iter()
-            .map(|line| line.iter().filter(|&&c| c != '.').count())
-            .sum();
-        println!("{score}");
-        //println!("{beams:?}");
-        //println!("{state}");
     }
 
     state
