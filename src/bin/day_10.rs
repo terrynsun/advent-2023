@@ -1,34 +1,7 @@
 use std::collections::HashSet;
 
 use advent_2023::puzzle::Puzzle;
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-struct Coord {
-    x: i32,
-    y: i32,
-}
-
-impl Coord {
-    fn pretty(&self) -> String {
-        format!("({},{})", self.x, self.y)
-    }
-
-    fn north(&self) -> Coord {
-        Coord { x: self.x, y: self.y-1 }
-    }
-
-    fn south(&self) -> Coord {
-        Coord { x: self.x, y: self.y+1 }
-    }
-
-    fn west(&self) -> Coord {
-        Coord { x: self.x-1, y: self.y }
-    }
-
-    fn east(&self) -> Coord {
-        Coord { x: self.x+1, y: self.y }
-    }
-}
+use advent_2023::twod::Coord;
 
 #[derive(Debug)]
 struct Map {
@@ -244,8 +217,6 @@ fn a(map: &Map) -> u64 {
         // update and print map
         cur_char = incr_char(cur_char);
         currents.iter().for_each(|c| steps_map.set(*c, cur_char));
-        println!("\n======================= {cur_char}");
-        steps_map.pretty_map();
 
         // check if all the same
         if currents.iter().all(|x| *x == currents[0]) {
@@ -293,29 +264,24 @@ fn b(map: &Map) -> u64 {
 
     steps_map.pretty_map();
 
-    let loop_xmin = set.iter().map(|c| c.x).min().unwrap();
-    let loop_ymin = set.iter().map(|c| c.y).min().unwrap();
-    let loop_xmax = set.iter().map(|c| c.x).max().unwrap();
-    let loop_ymax = set.iter().map(|c| c.y).max().unwrap();
-    println!("{:?}", set.iter().map(|x| x.pretty()).collect::<Vec<_>>().join(", "));
-
-    let mut i = 0;
-    for y in 0..map.ymax {
-        for x in 0..map.xmax {
-            if x < loop_xmin || x > loop_xmax|| y < loop_ymin || y > loop_ymax {
+    let mut inside = 0;
+    for (y, line) in steps_map.data.clone().iter().enumerate() {
+        for (x, &c) in line.iter().enumerate() {
+            if c == 'X' {
                 continue;
             }
 
-            if set.contains(&Coord { x, y }) {
-                continue;
+            let rem = map.data[y][x..].iter().filter(|&&x| x == 'X').count();
+            if rem % 2 == 1 {
+                inside += 1;
+                steps_map.set(Coord { x: x as i32, y: y as i32 }, 'I');
             }
-            println!("({x},{y}) {:?}", steps_map.get(Coord{ x, y }));
-
-            i += 1;
         }
     }
 
-    i
+    steps_map.pretty_map();
+
+    inside
 }
 
 fn main() {

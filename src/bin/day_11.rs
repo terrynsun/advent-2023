@@ -1,21 +1,7 @@
 use std::collections::HashSet;
 
 use advent_2023::puzzle::Puzzle;
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-struct Coord {
-    x: usize,
-    y: usize,
-}
-
-impl Coord {
-    fn new(x: usize, y: usize) -> Self {
-        Coord {
-            x,
-            y,
-        }
-    }
-}
+use advent_2023::twod::Coord;
 
 fn pairwise_distance(data: &Vec<Coord>) -> u64 {
     let mut sum = 0;
@@ -33,7 +19,7 @@ fn pairwise_distance(data: &Vec<Coord>) -> u64 {
     sum as u64
 }
 
-fn expand(mut galaxies: Vec<Coord>, expansion_factor: usize) -> Vec<Coord> {
+fn expand(mut galaxies: Vec<Coord>, expansion_factor: i32) -> Vec<Coord> {
     let mut xset = HashSet::new();
     let mut yset = HashSet::new();
 
@@ -91,7 +77,7 @@ fn main() {
             for (y, line) in text.iter().enumerate() {
                 for (x, c) in line.chars().enumerate() {
                     if c == '#' {
-                        galaxies.push(Coord::new(x, y));
+                        galaxies.push(Coord::from_usize(x, y));
                     }
                 }
             }

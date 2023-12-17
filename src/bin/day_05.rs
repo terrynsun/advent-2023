@@ -1,5 +1,5 @@
 use advent_2023::puzzle::Puzzle;
-use advent_2023::util::split_to_u64s;
+use advent_2023::util::split_parse;
 
 struct Almanac {
     seeds: Vec<u64>,
@@ -47,7 +47,7 @@ struct Range {
 
 impl Range {
     fn from_str(s: &str) -> Self {
-        let parts = split_to_u64s(s);
+        let parts = split_parse(s);
         Self {
             src: parts[1],
             dst: parts[0],
@@ -91,7 +91,7 @@ fn main() {
         delimiter: '\n',
         preprocess: |text| {
             // drop 'seeds:'
-            let seeds: Vec<_> = split_to_u64s(&text[0][7..]);
+            let seeds: Vec<_> = split_parse(&text[0][7..]);
 
             let mut maps: [Map; 7] = Default::default();
 

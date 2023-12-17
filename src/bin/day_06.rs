@@ -1,7 +1,7 @@
 use std::iter::zip;
 
 use advent_2023::puzzle::Puzzle;
-use advent_2023::util::split_to_u64s;
+use advent_2023::util::split_parse;
 use regex::Regex;
 
 type Race = (u64, u64);
@@ -23,9 +23,9 @@ fn main() {
         delimiter: '\n',
         preprocess: |text| {
             // Time:
-            let times = split_to_u64s(&text[0]["Time:".len()..]);
+            let times = split_parse(&text[0]["Time:".len()..]);
             // Distance:
-            let distances = split_to_u64s(&text[1]["Distance:".len()..]);
+            let distances = split_parse(&text[1]["Distance:".len()..]);
 
             zip(times, distances).collect::<Vec<_>>()
         },

@@ -1,5 +1,5 @@
 use advent_2023::puzzle::Puzzle;
-use advent_2023::util::split_to_i64s;
+use advent_2023::util::split_parse;
 
 fn next(vs: &Vec<i64>) -> Vec<i64> {
     vs.windows(2).map(|v| v[1] - v[0]).collect::<Vec<i64>>()
@@ -51,7 +51,7 @@ fn main() {
         delimiter: '\n',
         preprocess: |text| {
             text.iter()
-                .map(|line| split_to_i64s(line)).collect()
+                .map(|line| split_parse(line)).collect()
         },
     }.solve();
 }

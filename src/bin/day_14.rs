@@ -1,25 +1,5 @@
 use advent_2023::puzzle::Puzzle;
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-struct Coord {
-    x: i32,
-    y: i32,
-}
-
-impl std::fmt::Display for Coord {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({},{})", self.x, self.y)
-    }
-}
-
-impl Coord {
-    fn from_u(x: usize, y: usize) -> Self {
-        Self {
-            x: x as i32,
-            y: y as i32,
-        }
-    }
-}
+use advent_2023::twod::Coord;
 
 #[derive(Debug, Clone)]
 struct Map {
@@ -99,7 +79,7 @@ fn a(map: &Map) -> usize {
         for (x, &c) in line.iter().enumerate() {
             if c == 'O' {
                 let new_coord = map.get_first_northern_rock(x as i32, y as i32);
-                map.set(Coord::from_u(x, y), '.');
+                map.set(Coord::from_usize(x, y), '.');
                 map.set(new_coord, 'O');
             }
         }
