@@ -22,6 +22,7 @@ impl Beam {
         match tile {
             // If the beam encounters empty space (.), it continues in the same direction.
             '.' => vec![self.clone()],
+
             // If the beam encounters a mirror (/ or \), the beam is reflected 90 degrees depending
             // on the angle of the mirror. For instance, a rightward-moving beam that encounters a
             // / mirror would continue upward in the mirror's column, while a rightward-moving beam
@@ -38,6 +39,7 @@ impl Beam {
                 Direction::South => vec![self.turn_cloned(Direction::East)],
                 Direction::West => vec![self.turn_cloned(Direction::North)],
             },
+
             // If the beam encounters the pointy end of a splitter (| or -), the beam passes
             // through the splitter as if the splitter were empty space. For instance, a
             // rightward-moving beam that encounters a - splitter would continue in the same
@@ -86,15 +88,9 @@ impl Beam {
     }
 }
 
-fn a(map: &Map) -> usize {
+fn score_from_start(map: &Map, start: Beam) -> usize{
     let mut state = Map::empty(map.xmax, map.ymax);
     let mut beam_history = HashSet::new();
-
-    let start = Beam {
-        coord: Coord::new(0, 0),
-        dir: Direction::East,
-    };
-
     let mut beams = vec![start];
 
     loop {
@@ -136,8 +132,60 @@ fn a(map: &Map) -> usize {
         .sum()
 }
 
-fn b(_data: &Map) -> usize {
-    0
+fn a(map: &Map) -> usize {
+    let start = Beam {
+        coord: Coord::new(0, 0),
+        dir: Direction::East,
+    };
+    score_from_start(map, start)
+}
+
+fn b(map: &Map) -> usize {
+    [
+        // top row, going south
+        (0..map.xmax)
+            .map(|start_x| {
+                let start = Beam {
+                    coord: Coord::new(start_x, 0),
+                    dir: Direction::South,
+                };
+                score_from_start(map, start)
+            })
+            .max().unwrap(),
+
+        // bottom row, going north
+        (0..map.xmax)
+            .map(|start_x| {
+                let start = Beam {
+                    coord: Coord::new(start_x, map.ymax-1),
+                    dir: Direction::North,
+                };
+                score_from_start(map, start)
+            })
+            .max().unwrap(),
+
+        // left column, going east
+        (0..map.ymax)
+            .map(|start_y| {
+                let start = Beam {
+                    coord: Coord::new(0, start_y),
+                    dir: Direction::East,
+                };
+                score_from_start(map, start)
+            })
+            .max().unwrap(),
+
+        // right column, going west
+        (0..map.ymax)
+            .map(|start_y| {
+                let start = Beam {
+                    coord: Coord::new(map.xmax-1, start_y),
+                    dir: Direction::West,
+                };
+                score_from_start(map, start)
+            })
+            .max().unwrap(),
+    ].into_iter().max().unwrap()
 }
 
 fn main() {
