@@ -21,7 +21,7 @@ impl Beam {
     fn bounce(&self, tile: char) -> Vec<Beam> {
         match tile {
             // If the beam encounters empty space (.), it continues in the same direction.
-            '.' => vec![self.clone()],
+            '.' => vec![*self],
 
             // If the beam encounters a mirror (/ or \), the beam is reflected 90 degrees depending
             // on the angle of the mirror. For instance, a rightward-moving beam that encounters a
@@ -51,7 +51,7 @@ impl Beam {
             // that continues downward from the splitter's column.
             '|' => match self.dir {
                 // pointy end -> empty space
-                Direction::North | Direction::South => vec![self.clone()],
+                Direction::North | Direction::South => vec![*self],
                 // flat end -> split
                 Direction::East | Direction::West => vec![
                     self.turn_cloned(Direction::North),
@@ -65,7 +65,7 @@ impl Beam {
                     self.turn_cloned(Direction::West),
                 ],
                 // pointy end -> empty space
-                Direction::East | Direction::West => vec![self.clone()],
+                Direction::East | Direction::West => vec![*self],
             },
             _ => panic!("invalid tile {tile}"),
         }
@@ -95,7 +95,7 @@ fn score_from_start(map: &Map<char>, start: Beam) -> usize{
 
     loop {
         beams = beams.iter()
-            .map(|b| {
+            .flat_map(|b| {
                 // mark cur location
                 state.set(b.coord, '#');
 
@@ -103,7 +103,6 @@ fn score_from_start(map: &Map<char>, start: Beam) -> usize{
                 let tile = map.get(b.coord).unwrap();
                 b.bounce(tile)
             })
-            .flatten()
             .collect();
 
         beams.iter_mut()
@@ -118,7 +117,7 @@ fn score_from_start(map: &Map<char>, start: Beam) -> usize{
             .collect();
 
         beams.iter()
-            .for_each(|b| { beam_history.insert(b.clone()); });
+            .for_each(|b| { beam_history.insert(*b); });
 
         if beams.is_empty() {
             break;
