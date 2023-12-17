@@ -68,12 +68,12 @@ impl Map {
         Self::new(data)
     }
 
-    pub fn in_bounds(&self, x: i32, y: i32) -> bool {
-        x >= 0 && y >= 0 && x < self.xmax && y < self.ymax
+    pub fn in_bounds(&self, c: Coord) -> bool {
+        c.x >= 0 && c.y >= 0 && c.x < self.xmax && c.y < self.ymax
     }
 
     pub fn get(&self, c: Coord) -> Option<char> {
-        if !self.in_bounds(c.x, c.y) {
+        if !self.in_bounds(c) {
             None
         } else {
             Some(self.data[c.y as usize][c.x as usize])
@@ -81,7 +81,7 @@ impl Map {
     }
 
     pub fn set(&mut self, c: Coord, v: char) {
-        if !self.in_bounds(c.x, c.y) {
+        if !self.in_bounds(c) {
             println!("set out of bounds");
         }
 
