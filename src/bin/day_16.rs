@@ -1,15 +1,7 @@
 use std::collections::HashSet;
 
 use advent_2023::puzzle::Puzzle;
-use advent_2023::twod::{Coord, Map, char_map_from_strings};
-
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-enum Direction {
-    North,
-    East,
-    South,
-    West,
-}
+use advent_2023::twod::{Coord, Direction, Map, char_map_from_strings};
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 struct Beam {

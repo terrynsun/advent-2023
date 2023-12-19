@@ -24,6 +24,15 @@ impl Coord {
         }
     }
 
+    pub fn step(&self, dir: Direction) -> Coord {
+        match dir {
+            Direction::North => self.north(),
+            Direction::East => self.east(),
+            Direction::South => self.south(),
+            Direction::West => self.west(),
+        }
+    }
+
     pub fn north(&self) -> Coord {
         Coord { x: self.x, y: self.y-1 }
     }
@@ -39,6 +48,14 @@ impl Coord {
     pub fn east(&self) -> Coord {
         Coord { x: self.x+1, y: self.y }
     }
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub enum Direction {
+    North,
+    East,
+    South,
+    West,
 }
 
 #[derive(Debug, Clone)]
