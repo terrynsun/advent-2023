@@ -110,6 +110,11 @@ where
         self.data[c.y as usize][c.x as usize] = v;
     }
 
+    pub fn get_with_wraparound(&self, c: Coord) -> Option<T> {
+        let wrapped = self.wrap_coord(c);
+        self.get(wrapped)
+    }
+
     pub fn wrap_coord(&self, c: Coord) -> Coord {
         Coord {
             x: wrap(c.x, self.xmax),

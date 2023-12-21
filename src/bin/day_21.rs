@@ -38,21 +38,15 @@ fn a(map: &Map<char>) -> usize {
 }
 
 fn b(map: &Map<char>) -> usize {
-    let mut tracker_map = map.clone();
+    let start = map.find(&'S');
 
     let mut locs = HashSet::new();
-    locs.insert(map.find(&'S'));
+    locs.insert(start);
 
-    for i in 0..26501365 {
-        if i % 5 == 0 {
-            println!("\n{i}");
-            println!("{tracker_map}");
-            println!("{:?}", locs.len());
-        }
+    for i in 0..5000 {
         let mut next_steps = HashSet::new();
 
-        for location in locs {
-            tracker_map.set(location, '.');
+        for &location in locs.iter() {
             let possible_next_steps = [
                 location.north(),
                 location.east(),
@@ -61,16 +55,15 @@ fn b(map: &Map<char>) -> usize {
             ];
 
             for try_step in possible_next_steps {
-                let wrapped_step = map.wrap_coord(try_step);
-
-                let ground = map.get(wrapped_step).unwrap();
+                let ground = map.get_with_wraparound(try_step).unwrap();
                 if ground != '#' {
-                    next_steps.insert(wrapped_step);
-                    tracker_map.set(wrapped_step, 'O');
+                    next_steps.insert(try_step);
                 }
             }
         }
 
+        println!("\n-- Step {i} --");
+        println!("next_steps size: {:?}", next_steps.len());
         locs = next_steps;
     }
 
