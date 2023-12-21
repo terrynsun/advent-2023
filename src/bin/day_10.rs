@@ -13,9 +13,10 @@ struct Map {
 
 impl Map {
     fn new(data: Vec<Vec<char>>) -> Self {
-        let start = Self::find_start(&data);
+        let inner = InnerMap::new(data);
+        let start = inner.find(&'S');
 
-        Self { inner: InnerMap::new(data), start }
+        Self { inner, start }
     }
 
     fn empty(xmax: i32, ymax: i32) -> Self {
@@ -27,19 +28,6 @@ impl Map {
 
     fn set(&mut self, c: Coord, v: char) {
         self.inner.set(c, v);
-    }
-
-    // lazy
-    fn find_start(data: &Vec<Vec<char>>) -> Coord {
-        for (y, line) in data.iter().enumerate() {
-            for (x, c) in line.iter().enumerate() {
-                if c == &'S' {
-                    return Coord { x: x as i32, y: y as i32 };
-                }
-            }
-        }
-
-        Coord { x: -1, y: -1 }
     }
 
     fn get(&self, c: Coord) -> Option<char> {

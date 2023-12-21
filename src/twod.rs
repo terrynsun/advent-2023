@@ -104,13 +104,37 @@ where
 
     pub fn set(&mut self, c: Coord, v: T) {
         if !self.in_bounds(c) {
-            println!("set out of bounds");
+            panic!("set out of bounds");
         }
 
         self.data[c.y as usize][c.x as usize] = v;
     }
+
+    pub fn wrap_coord(&self, c: Coord) -> Coord {
+        Coord {
+            x: wrap(c.x, self.xmax),
+            y: wrap(c.y, self.ymax),
+        }
+    }
 }
 
+fn wrap(a: i32, b: i32) -> i32 {
+    ((a % b) + b) % b
+}
+
+impl<T: PartialEq> Map<T> {
+    pub fn find(&self, target: &T) -> Coord {
+        for (y, line) in self.data.iter().enumerate() {
+            for (x, c) in line.iter().enumerate() {
+                if c == target {
+                    return Coord { x: x as i32, y: y as i32 };
+                }
+            }
+        }
+
+        Coord { x: -1, y: -1 }
+    }
+}
 impl<T> Display for Map<T>
 where
     T: Display
