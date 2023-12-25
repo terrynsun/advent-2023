@@ -17,6 +17,13 @@ impl Coord {
         Self { x, y }
     }
 
+    pub fn from_str(x: &str, y: &str) -> Self {
+        Self {
+            x: x.parse().unwrap(),
+            y: y.parse().unwrap(),
+        }
+    }
+
     pub fn from_usize(x: usize, y: usize) -> Self {
         Self {
             x: x as i32,
@@ -58,7 +65,7 @@ pub enum Direction {
     West,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
 pub struct Map<T> {
     pub data: Vec<Vec<T>>,
 
@@ -140,6 +147,7 @@ impl<T: PartialEq> Map<T> {
         Coord { x: -1, y: -1 }
     }
 }
+
 impl<T> Display for Map<T>
 where
     T: Display

@@ -26,10 +26,10 @@ impl From<char> for Category {
 
 #[derive(Debug, Copy, Clone)]
 struct Part {
-    x: u32, // cool
-    m: u32, // musical
-    a: u32, // aerodynamic
-    s: u32, // shiny
+    x: u64, // cool
+    m: u64, // musical
+    a: u64, // aerodynamic
+    s: u64, // shiny
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -48,11 +48,11 @@ impl From<char> for Comparison {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct IfClause {
     category: Category,
     operator: Comparison,
-    val: u32,
+    val: u64,
     then: String,
 }
 
@@ -92,12 +92,6 @@ impl IfStmt {
         }
 
         self.terminal.clone()
-    }
-
-    fn get_outputs(&self) -> Vec<String> {
-        let mut v: Vec<_> = self.ifs.iter().map(|i| i.then.to_string()).collect();
-        v.push(self.terminal.to_string());
-        v
     }
 }
 
@@ -141,60 +135,49 @@ fn is_accepted(program: &HashMap<String, IfStmt>, part: &Part) -> bool {
     }
 }
 
-fn find_accepted_paths(program: &HashMap<String, IfStmt>) -> Vec<Vec<&IfStmt>> {
-    let start = &program["in"];
+type Path = (String, Vec<IfClause>);
 
+fn find_accepted_paths(program: &HashMap<String, IfStmt>) -> Vec<Vec<IfClause>> {
     let mut accepted_paths = vec![];
-    let mut queue = vec![vec![start]];
+    let mut queue: Vec<Path> = vec![("in".to_string(), vec![])];
+    // Need to move from the "in" node to "A" nodes, collecting all edges
+    // that are passed along the way.
+    // Is this a DAG? probably not, but maybe we'll start with assuming that it is.
     loop {
-        let cur = queue.remove(0);
-        let next_node_names = cur[cur.len()-1].get_outputs();
-
-        for next_node_name in next_node_names {
-            // Drop reject paths
-            if next_node_name == "R" {
-                continue;
-            } else if next_node_name == "A" {
-                accepted_paths.push(cur.clone());
-                continue;
-            }
-
-            let next_node = &program[&next_node_name];
-            let mut path = cur.clone();
-            path.push(next_node);
-
-            queue.push(path);
-        }
-
         if queue.is_empty() {
             return accepted_paths;
         }
+
+        let cur_path = queue.remove(0);
+        if cur_path.0 == "A" {
+            accepted_paths.push(cur_path.1);
+            continue;
+        }
+
+        // drop rejected paths and continue
+        if cur_path.0 == "R" {
+            continue;
+        }
+
+        // push all possible outputs into the queue to check
+        let node = &program[&cur_path.0];
+        for possible_then_node in node.ifs.iter() {
+            let mut new_clause_path = cur_path.1.clone();
+            new_clause_path.push(possible_then_node.clone());
+
+            queue.push((possible_then_node.then.clone(), new_clause_path));
+        }
+
+        // including the else path, which does not add an if-clause
+        queue.push((node.terminal.clone(), cur_path.1.clone()))
     }
 }
 
-// fn high_low_parts(path: Vec<IfStmt>) -> (Part, Part) {
-//     let low = Part {
-//         x: u32::MAX,
-//         m: u32::MAX,
-//         a: u32::MAX,
-//         s: u32::MAX,
-//     };
-
-//     let high = Part {
-//         x: 0,
-//         m: 0,
-//         a: 0,
-//         s: 0,
-//     };
-
-
-// }
-
-fn score(part: &Part) -> u32 {
+fn score(part: &Part) -> u64 {
     part.x + part.m + part.a + part.s
 }
 
-fn a(data: &(HashMap<String, IfStmt>, Vec<Part>)) -> u32 {
+fn a(data: &(HashMap<String, IfStmt>, Vec<Part>)) -> u64 {
     let program = &data.0;
     data.1
         .iter()
@@ -203,12 +186,78 @@ fn a(data: &(HashMap<String, IfStmt>, Vec<Part>)) -> u32 {
         .sum()
 }
 
-fn b(data: &(HashMap<String, IfStmt>, Vec<Part>)) -> u32 {
+// for a single path, find restrictions on what passes
+fn high_low_parts(path: &Vec<IfClause>) -> (Part, Part) {
+    let mut low = Part {
+        x: 1,
+        m: 1,
+        a: 1,
+        s: 1,
+    };
+
+    let mut high = Part {
+        x: 4000,
+        m: 4000,
+        a: 4000,
+        s: 4000,
+    };
+
+    for edge in path {
+        match edge.operator {
+            // travel when part < clause ( x < 100 )
+            // max acceptable value is clause-1
+            Comparison::Lt => match edge.category {
+                Category::X => high.x = std::cmp::min(high.x, edge.val - 1),
+                Category::M => high.m = std::cmp::min(high.m, edge.val - 1),
+                Category::A => high.a = std::cmp::min(high.a, edge.val - 1),
+                Category::S => high.s = std::cmp::min(high.s, edge.val - 1),
+            },
+            // travel when part > clause
+            // min acceptable value is clause+1
+            Comparison::Gt => match edge.category {
+                Category::X => low.x = std::cmp::max(low.x, edge.val + 1),
+                Category::M => low.m = std::cmp::max(low.m, edge.val + 1),
+                Category::A => low.a = std::cmp::max(low.a, edge.val + 1),
+                Category::S => low.s = std::cmp::max(low.s, edge.val + 1),
+            },
+        }
+    }
+
+    (high, low)
+}
+
+fn count(high: &Part, low: &Part) -> u64 {
+    println!("{} {} {} {}",
+        high.x - low.x,
+        high.m - low.m,
+        high.a - low.a,
+        high.s - low.s,
+    );
+    [
+        high.x - low.x,
+        high.m - low.m,
+        high.a - low.a,
+        high.s - low.s,
+    ]
+    .iter()
+    .product()
+}
+
+fn b(data: &(HashMap<String, IfStmt>, Vec<Part>)) -> u64 {
     let program = &data.0;
     let accepted_paths = find_accepted_paths(program);
-    println!("{:?}", accepted_paths.len());
+    let high_low_for_all_paths: Vec<_> = accepted_paths.iter().map(high_low_parts).collect();
 
-    0
+    accepted_paths.iter().for_each(|p| {
+        let (h, l) = high_low_parts(p);
+        println!("{:?}", p);
+        println!("h: {:?}, l: {:?}", h, l);
+        println!("{}", count(&h, &l) / (4000*4000*4000*40));
+    });
+
+    high_low_for_all_paths.iter().map(|(high, low)| {
+        count(high, low)
+    }).sum()
 }
 
 fn main() {
