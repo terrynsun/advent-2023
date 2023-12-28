@@ -93,6 +93,7 @@ impl IntoIterator for Brick {
 #[derive(Debug, Default)]
 struct Space {
     data: HashMap<Coord, char>,
+    bricks_by_name: HashMap<char, Brick>,
 
     xmax: i32,
     ymax: i32,
@@ -137,6 +138,8 @@ impl Space {
     }
 
     fn insert(&mut self, brick: Brick) {
+        self.bricks_by_name.insert(brick.name, brick);
+
         for c in brick.into_iter() {
             self.data.insert(c, brick.name);
 
@@ -146,13 +149,20 @@ impl Space {
         }
     }
 
+    fn find_brick(&self, c: char) -> Option<Brick> {
+        self.bricks_by_name.get(&c).copied()
+    }
+
     fn remove(&mut self, brick: &Brick) {
         for c in brick.into_iter() {
-            // does not check if removing only the right brick.
+            // does not check if removing only the right brick (assumes no intersections, I guess)
             self.data.remove(&c);
-
         }
-        // todo does not fix {x,y,z}-max
+        // does not fix {x,y,z}-max
+    }
+
+    fn remove_by_name(&mut self, name: char) {
+        self.remove(&self.find_brick(name).unwrap())
     }
 
     fn search(&self, c: Coord) -> Option<char> {
@@ -164,7 +174,7 @@ impl Space {
 
         for c in brick.into_iter() {
             if let Some(name) = self.search(c.above()) {
-                // ignore bricks that are more than 1 unit high (and thus are under themselves...)
+                // ignore bricks that are below themselves because they are than 1 unit high
                 if name == brick.name {
                     continue;
                 }
@@ -181,7 +191,7 @@ impl Space {
 
         for c in brick.into_iter() {
             if let Some(name) = self.search(c.below()) {
-                // ignore bricks that are more than 1 unit high (and thus are under themselves...)
+                // ignore bricks that are above themselves because they are than 1 unit high
                 if name == brick.name {
                     continue;
                 }
@@ -193,7 +203,29 @@ impl Space {
         Vec::from_iter(below)
     }
 
-    fn fall(&mut self, brick: &Brick) -> Option<Brick> {
+    // Simulate bricks falling until no bricks fall
+    fn drop_all_bricks(&mut self) {
+        loop {
+            let mut new_bricks = vec![];
+            for (_name, brick) in self.bricks_by_name.iter() {
+                // todo - use while let?
+                if let Some(new_brick) = self.drop_brick(brick) {
+                    new_bricks.push(new_brick);
+                }
+            }
+
+            if new_bricks.is_empty() {
+                break;
+            }
+
+            new_bricks.into_iter().for_each(|b| {
+                self.remove_by_name(b.name);
+                self.insert(b);
+            });
+        }
+    }
+
+    fn drop_brick(&self, brick: &Brick) -> Option<Brick> {
         if !self.find_below(brick).is_empty() {
             return None;
         }
@@ -203,66 +235,48 @@ impl Space {
             return None;
         }
 
-        self.remove(brick);
-
         let new_brick = brick.fall();
-        self.insert(new_brick);
 
         Some(new_brick)
     }
+
+    fn is_fully_supported_by(&self, brick: &Brick, others: Vec<Brick>) -> bool {
+        let bricks_below = self.find_below(brick);
+        bricks_below
+            .iter()
+            .map(|&name| self.find_brick(name).unwrap())
+            .all(|below| others.contains(&below))
+    }
 }
 
-fn a(bricks: &Vec<Brick>) -> u64 {
+fn a(bricks: &Vec<Brick>) -> usize {
     let mut space: Space = Default::default();
-    let mut bricks_by_name = HashMap::new();
 
     for &b in bricks.iter() {
-        bricks_by_name.insert(b.name, b);
         space.insert(b);
     }
 
-    // Bricks fall
-    loop {
-        let mut has_fallen = false;
-        for (_name, brick) in bricks_by_name.iter_mut() {
-            if let Some(new_brick) = space.fall(brick) {
-                *brick = new_brick;
-                has_fallen = true;
-            }
-        }
-
-        if !has_fallen {
-            break;
-        }
-    }
+    space.drop_all_bricks();
 
     // You can disintegrate a brick when all bricks above it are above 2+ bricks.
-    let mut count = 0;
-    for (&_c, &b) in bricks_by_name.iter() {
-        let bricks_above = space.find_above(b);
-        if bricks_above.is_empty() {
-            count += 1;
-            continue;
-        }
-
-        let mut is_sole_support = false;
-        for above in bricks_above {
-            let above_brick = bricks_by_name.get(&above).unwrap();
-            let belows = space.find_below(above_brick);
-            if belows.len() == 1 {
-                is_sole_support = true;
+    space
+        .bricks_by_name
+        .iter()
+        .filter(|(&_c, &b)| {
+            let bricks_above = space.find_above(b);
+            if bricks_above.is_empty() {
+                return true;
             }
-        }
 
-        if !is_sole_support {
-            count += 1;
-        }
-    }
-
-    count
+            !bricks_above.iter().any(|above| {
+                let brick = space.find_brick(*above).unwrap();
+                space.is_fully_supported_by(&brick, vec![b])
+            })
+        })
+        .count()
 }
 
-fn b(_data: &Vec<Brick>) -> u64 {
+fn b(_data: &Vec<Brick>) -> usize {
     0
 }
 
