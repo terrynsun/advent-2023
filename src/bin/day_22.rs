@@ -206,11 +206,10 @@ impl Space {
     // Simulate bricks falling until no bricks fall
     fn drop_all_bricks(&mut self) {
         loop {
-            let mut new_bricks = vec![];
+            let mut new_bricks = HashSet::new();
             for (_name, brick) in self.bricks_by_name.iter() {
-                // todo - use while let?
                 if let Some(new_brick) = self.drop_brick(brick) {
-                    new_bricks.push(new_brick);
+                    new_bricks.insert(new_brick);
                 }
             }
 
@@ -240,44 +239,79 @@ impl Space {
         Some(new_brick)
     }
 
-    fn is_fully_supported_by(&self, brick: &Brick, others: Vec<Brick>) -> bool {
+    fn is_fully_supported_by(&self, brick: &Brick, others: &HashSet<char>) -> bool {
         let bricks_below = self.find_below(brick);
         bricks_below
             .iter()
             .map(|&name| self.find_brick(name).unwrap())
-            .all(|below| others.contains(&below))
+            .all(|below| others.contains(&below.name))
+    }
+
+    fn can_disintegrate(&self, brick: Brick) -> bool {
+        let bricks_above = self.find_above(brick);
+        if bricks_above.is_empty() {
+            return true;
+        }
+
+        !bricks_above
+            .iter()
+            .map(|&name| self.find_brick(name).unwrap())
+            .any(|above| {
+                let s: HashSet<char> = HashSet::from_iter(vec![brick.name].iter().cloned());
+                self.is_fully_supported_by(&above, &s)
+            })
+    }
+
+    fn count_supported_by(&self, brick: Brick) -> usize {
+        let mut disintegrated: HashSet<char> = HashSet::from_iter(vec![brick.name].iter().cloned());
+        let mut new_fallen = vec![brick];
+
+        loop {
+            let bricks_above: Vec<_> = new_fallen
+                .iter()
+                .flat_map(|&b| self.find_above(b))
+                .collect();
+
+            if bricks_above.is_empty() {
+                break;
+            }
+
+            new_fallen = bricks_above
+                .iter()
+                .map(|&name| self.find_brick(name).unwrap())
+                .filter(|above| self.is_fully_supported_by(above, &disintegrated))
+                .collect();
+
+            if new_fallen.is_empty() {
+                break;
+            }
+
+            new_fallen.iter().for_each(|b| {
+                disintegrated.insert(b.name);
+            });
+        }
+
+        // remove self from set
+        disintegrated.len() - 1
     }
 }
 
-fn a(bricks: &Vec<Brick>) -> usize {
-    let mut space: Space = Default::default();
-
-    for &b in bricks.iter() {
-        space.insert(b);
-    }
-
-    space.drop_all_bricks();
-
+fn a(space: &Space) -> usize {
     // You can disintegrate a brick when all bricks above it are above 2+ bricks.
     space
         .bricks_by_name
         .iter()
-        .filter(|(&_c, &b)| {
-            let bricks_above = space.find_above(b);
-            if bricks_above.is_empty() {
-                return true;
-            }
-
-            !bricks_above.iter().any(|above| {
-                let brick = space.find_brick(*above).unwrap();
-                space.is_fully_supported_by(&brick, vec![b])
-            })
-        })
+        .filter(|(&_c, &b)| space.can_disintegrate(b))
         .count()
 }
 
-fn b(_data: &Vec<Brick>) -> usize {
-    0
+fn b(space: &Space) -> usize {
+    space
+        .bricks_by_name
+        .iter()
+        .filter(|(&_c, &b)| !space.can_disintegrate(b))
+        .map(|(&_c, &b)| space.count_supported_by(b))
+        .sum()
 }
 
 fn main() {
@@ -287,19 +321,23 @@ fn main() {
         delimiter: '\n',
         preprocess: |text| {
             let mut cur_name = '@'; // @ is 1 before A
-            text.iter()
-                .map(|line| {
-                    let re = Regex::new(r"([0-9]+),([0-9]+),([0-9]+)~([0-9]+),([0-9]+),([0-9]+)")
-                        .unwrap();
-                    let (_full, [x1, y1, z1, x2, y2, z2]) = re.captures(line).unwrap().extract();
-                    cur_name = incr_char(cur_name);
-                    Brick {
-                        a: Coord::from_str(x1, y1, z1),
-                        b: Coord::from_str(x2, y2, z2),
-                        name: cur_name,
-                    }
+            let mut space: Space = Default::default();
+
+            text.iter().for_each(|line| {
+                let re =
+                    Regex::new(r"([0-9]+),([0-9]+),([0-9]+)~([0-9]+),([0-9]+),([0-9]+)").unwrap();
+                let (_full, [x1, y1, z1, x2, y2, z2]) = re.captures(line).unwrap().extract();
+                cur_name = incr_char(cur_name);
+                space.insert(Brick {
+                    a: Coord::from_str(x1, y1, z1),
+                    b: Coord::from_str(x2, y2, z2),
+                    name: cur_name,
                 })
-                .collect()
+            });
+
+            space.drop_all_bricks();
+
+            space
         },
     }
     .solve();
